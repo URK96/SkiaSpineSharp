@@ -9,4 +9,10 @@
     <PackageReference Include="SkiaSharp" Version="2.88.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="spine-csharp">
+      <HintPath>..\..\..\spine_runtime\spine-csharp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
