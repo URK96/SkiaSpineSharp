@@ -2,11 +2,16 @@
 
 public class SkiaSpineRenderer
 {
+    private SKBitmap _lastTexture = null;
+    private SKPaint _paint = new();
+    private readonly Queue<SKVertices> _verticesDataQueue = new();
+
     public int[] QuadTriangles { get; set; } = { 0, 1, 2, 1, 3, 2 };
 
     public SKCanvas Draw(SKCanvas canvas, Skeleton skeleton)
     {
         canvas.Save();
+        _verticesDataQueue.Clear();
 
         foreach (Slot slot in skeleton.DrawOrder)
         {
@@ -73,6 +78,13 @@ public class SkiaSpineRenderer
                 continue;
             }
 
+            if (_lastTexture != texture)
+            {
+                FlushDatas();
+
+                _lastTexture = texture;
+            }
+
             int textureWidth = texture.Width;
             int textureHeight = texture.Height;
             List<SKPoint> vertices = new();
@@ -85,23 +97,36 @@ public class SkiaSpineRenderer
                 texturePoints.Add(new SKPoint(textureWidth * textureUVs[i], textureHeight * textureUVs[i + 1]));
             }
 
-            using SKPaint paint = new()
-            {
-                Shader = texture.ToShader(),
-                FilterQuality = SKFilterQuality.Medium
-            };
-
-            canvas.DrawVertices(
+            var verticesData = SKVertices.CreateCopy(
                 SKVertexMode.Triangles,
                 vertices.ToArray(),
                 texturePoints.ToArray(),
                 null,
-                indicies,
-                paint);
+                    indicies);
+
+            _verticesDataQueue.Enqueue(verticesData);
         }
+
+        FlushDatas();
 
         canvas.Restore();
 
         return canvas;
+
+
+        // Local Functions
+
+        void FlushDatas()
+        {
+            if (_verticesDataQueue.Any())
+            {
+                _paint.Shader = _lastTexture?.ToShader();
+
+                while (_verticesDataQueue.Any())
+                {
+                    canvas.DrawVertices(_verticesDataQueue.Dequeue(), SKBlendMode.SrcATop, _paint);
+                }
+            }
+        }
     }
 }
