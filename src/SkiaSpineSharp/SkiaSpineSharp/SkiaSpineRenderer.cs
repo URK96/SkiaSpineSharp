@@ -4,9 +4,24 @@ public class SkiaSpineRenderer
 {
     private SKBitmap _lastTexture = null;
     private SKPaint _paint = new();
+    private SKFilterQuality _textureFilterQuality = SKFilterQuality.None;
     private readonly Queue<SKVertices> _verticesDataQueue = new();
 
     public int[] QuadTriangles { get; set; } = { 0, 1, 2, 1, 3, 2 };
+
+    public SKFilterQuality TextureFilterQuality
+    {
+        get => _textureFilterQuality;
+        set
+        {
+            _textureFilterQuality = value;
+
+            if (_paint is not null)
+            {
+                _paint.FilterQuality = _textureFilterQuality;
+            }
+        }
+    }
 
     public SKCanvas Draw(SKCanvas canvas, Skeleton skeleton)
     {
